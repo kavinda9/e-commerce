@@ -347,7 +347,6 @@ if (isLoggedIn()) {
     </style>
 </head>
 <body>
-    <!-- Animated Background -->
     <div class="animated-bg"></div>
 
     <!-- Navbar -->
