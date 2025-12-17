@@ -144,7 +144,7 @@ if (isLoggedIn()) {
             font-size: 4.5rem;
             font-weight: 800;
             margin-bottom: 1.5rem;
-            background: linear-gradient(135deg, #3652ceff 0%, #40275aff 100%);
+            background: linear-gradient(135deg, #2444d2ff 0%, #40275aff 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -179,7 +179,7 @@ if (isLoggedIn()) {
         }
 
         .btn-primary-custom {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #2745caff 0%, #764ba2 100%);
             color: white;
             box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
         }
@@ -367,13 +367,13 @@ if (isLoggedIn()) {
                 Welcome to ShopNet
             </h1>
             <p class="hero-subtitle">
-                Your trusted platform for secure online shopping. Experience seamless transactions with enterprise-grade security.
+                Your trusted platform for secure online shopping. Experience seamless transactions with enterprise grade security.
             </p>
             <div class="hero-buttons">
                 <a href="auth/register.php" class="btn-custom btn-primary-custom">
                     <i class="fas fa-user-plus"></i> Get Started
                 </a>
-                <a href="auth/login.php" class="btn-custom btn-outline-custom">
+                <a href="auth/login.php" class="btn-custom btn-primary-custom">
                     <i class="fas fa-sign-in-alt"></i> Sign In
                 </a>
             </div>
