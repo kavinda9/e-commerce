@@ -19,6 +19,7 @@ if (isLoggedIn()) {
     <title>ShopNet - Secure E-Commerce Platform</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Chewy&display=swap" rel="stylesheet">
     <link href="assets/css/style.css" rel="stylesheet">
     <style>
         * {
@@ -29,7 +30,7 @@ if (isLoggedIn()) {
 
         body {
             background: #0a0e27;
-            color: #fff;
+            color: #ffffffff;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             overflow-x: hidden;
         }
@@ -69,8 +70,7 @@ if (isLoggedIn()) {
         .navbar {
             background: rgba(10, 14, 39, 0.95);
             backdrop-filter: blur(10px);
-            padding: 1rem 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0.5rem 0;
             position: sticky;
             top: 0;
             z-index: 1000;
@@ -84,7 +84,7 @@ if (isLoggedIn()) {
         .navbar-brand {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 15px;
             font-size: 1.8rem;
             font-weight: 700;
             color: #fff !important;
@@ -96,8 +96,16 @@ if (isLoggedIn()) {
         }
 
         .navbar-brand img {
-            height: 45px;
+            height: 100px;
             width: auto;
+            filter: drop-shadow(0 4px 8px rgba(148, 185, 255, 0.5));
+        }
+
+        .navbar-brand span {
+            font-family: 'Fredoka One', cursive;
+            font-size: 2.5rem;
+            color: #94b9ff;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
         }
 
         /* Hero Section */
@@ -136,7 +144,7 @@ if (isLoggedIn()) {
             font-size: 4.5rem;
             font-weight: 800;
             margin-bottom: 1.5rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #3652ceff 0%, #40275aff 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -145,7 +153,7 @@ if (isLoggedIn()) {
 
         .hero-subtitle {
             font-size: 1.5rem;
-            color: #b8c1ec;
+            color: #010623ff;
             margin-bottom: 3rem;
             animation: fadeInUp 1s ease 0.4s both;
         }
