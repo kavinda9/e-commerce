@@ -153,7 +153,7 @@ if (isLoggedIn()) {
 
         .hero-subtitle {
             font-size: 1.5rem;
-            color: #010623ff;
+            color: #010622ff;
             margin-bottom: 3rem;
             animation: fadeInUp 1s ease 0.4s both;
         }
