@@ -5,6 +5,7 @@
  */
 
 require_once '../config/database.php';
+startSecureSession(); // Start session first
 redirectIfLoggedIn(); // Redirect if already logged in
 
 $error = '';
