@@ -66,8 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ");
             $stmt->execute([':user_id' => $user['user_id']]);
             
-            // Create session
-            startSecureSession();
+            // Regenerate session ID for security
             session_regenerate_id(true);
             
             $_SESSION['user_id'] = $user['user_id'];
@@ -83,8 +82,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 VALUES (:session_id, :user_id, :ip_address, :user_agent)
                 ON DUPLICATE KEY UPDATE 
                     last_activity = CURRENT_TIMESTAMP,
-                    ip_address = :ip_address,
-                    user_agent = :user_agent
+                    ip_address = VALUES(ip_address),
+                    user_agent = VALUES(user_agent)
             ");
             $stmt->execute([
                 ':session_id' => $sessionId,
