@@ -1,29 +1,30 @@
 <?php
 /**
- * Logout Handler
+ * Logout Script
  * Group 9 - Secure E-Commerce System
  */
 
 require_once '../config/database.php';
+
 startSecureSession();
 
+// Log the logout if user is logged in
 if (isset($_SESSION['user_id'])) {
-    $db = Database::getInstance()->getConnection();
-    $sessionId = session_id();
-    
-    // Delete session from database
-    $stmt = $db->prepare("DELETE FROM sessions WHERE session_id = :session_id");
-    $stmt->execute([':session_id' => $sessionId]);
-    
-    // Audit log
-    logAudit($_SESSION['user_id'], 'LOGOUT', 'user', $_SESSION['user_id']);
-    
-    // Destroy session
-    session_unset();
-    session_destroy();
+    logAudit($_SESSION['user_id'], 'LOGOUT', 'user', $_SESSION['user_id'], 'User logged out');
+}
+
+// Clear all session variables
+session_unset();
+
+// Destroy the session
+session_destroy();
+
+// Clear session cookie
+if (isset($_COOKIE[session_name()])) {
+    setcookie(session_name(), '', time() - 3600, '/');
 }
 
 // Redirect to login page
-header('Location: login.php');
+header('Location: login.php?logged_out=1');
 exit;
 ?>
