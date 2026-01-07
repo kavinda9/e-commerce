@@ -108,7 +108,16 @@ if (!$product) {
             <!-- Product Image -->
             <div class="col-lg-6 mb-4">
                 <div class="product-image-large">
-                    <i class="fas fa-box fa-10x text-muted"></i>
+                    <?php 
+                        $imagePath = '../assets/images/products/' . $product['name'] . '.png';
+                        if (file_exists($imagePath)): 
+                    ?>
+                        <img src="<?php echo $imagePath; ?>" 
+                             alt="<?php echo htmlspecialchars($product['name']); ?>"
+                             style="width: 100%; height: 100%; object-fit: cover; border-radius: 15px;">
+                    <?php else: ?>
+                        <i class="fas fa-box fa-10x text-muted"></i>
+                    <?php endif; ?>
                 </div>
             </div>
 

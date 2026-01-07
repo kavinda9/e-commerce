@@ -182,7 +182,16 @@ if (isset($_GET['logout'])) {
                 <div class="col-md-3">
                     <div class="card product-card">
                         <div class="product-image">
-                            <i class="fas fa-box fa-4x text-muted"></i>
+                            <?php 
+                                $imagePath = 'assets/images/products/' . $product['name'] . '.png';
+                                if (file_exists($imagePath)): 
+                            ?>
+                                <img src="<?php echo $imagePath; ?>" 
+                                     alt="<?php echo htmlspecialchars($product['name']); ?>"
+                                     style="width: 100%; height: 100%; object-fit: cover;">
+                            <?php else: ?>
+                                <i class="fas fa-box fa-4x text-muted"></i>
+                            <?php endif; ?>
                         </div>
                         <div class="card-body">
                             <h5 class="card-title"><?php echo htmlspecialchars($product['name']); ?></h5>

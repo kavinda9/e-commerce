@@ -234,7 +234,14 @@ $categories = $db->query("SELECT DISTINCT category FROM products WHERE category 
                                 <tr>
                                     <td><strong>#<?php echo $product['product_id']; ?></strong></td>
                                     <td>
-                                        <?php if (!empty($product['image_url']) && file_exists('../' . $product['image_url'])): ?>
+                                        <?php 
+                                            $imagePath = '../assets/images/products/' . $product['name'] . '.png';
+                                            if (file_exists($imagePath)): 
+                                        ?>
+                                            <img src="<?php echo $imagePath; ?>" 
+                                                 class="product-image-thumb" 
+                                                 alt="<?php echo htmlspecialchars($product['name']); ?>">
+                                        <?php elseif (!empty($product['image_url']) && file_exists('../' . $product['image_url'])): ?>
                                             <img src="../<?php echo htmlspecialchars($product['image_url']); ?>" 
                                                  class="product-image-thumb" 
                                                  alt="<?php echo htmlspecialchars($product['name']); ?>">
