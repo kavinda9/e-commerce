@@ -172,3 +172,8 @@ SELECT
 FROM users u
 LEFT JOIN orders o ON u.user_id = o.user_id
 GROUP BY u.user_id;
+
+ALTER TABLE user
+  ADD `reset_token_hash` VARCHAR(64) NULL DEFAULT NULL,
+  ADD `reset_token_expires_at` DATETIME NULL DEFAULT NULL,
+  ADD UNIQUE (`reset_token_hash`);
