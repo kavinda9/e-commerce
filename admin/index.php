@@ -1,7 +1,7 @@
 <?php
 require_once '../config/database.php';
 
-// Ensure session is started
+
 startSecureSession();
 
 // Check if user is logged in
@@ -15,7 +15,7 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
 }
 
 $db = Database::getInstance()->getConnection();
-
+//thi part
 // Get dashboard statistics
 try {
     $totalUsers = $db->query("SELECT COUNT(*) FROM users")->fetchColumn();
