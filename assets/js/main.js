@@ -1,8 +1,3 @@
-/**
- * Main JavaScript for Secure E-Commerce
- * Group 9 Project
- */
-
 // Initialize on page load
 document.addEventListener("DOMContentLoaded", function () {
   // Auto-dismiss alerts after 5 seconds

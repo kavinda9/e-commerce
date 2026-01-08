@@ -1,9 +1,4 @@
 <?php
-/**
- * Shopping Cart
- * Group 9 - Secure E-Commerce System
- */
-
 require_once '../config/database.php';
 requireLogin();
 

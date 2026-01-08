@@ -1,9 +1,4 @@
 <?php
-/**
- * Forgot Password
- * Group 9 - Secure E-Commerce System
- */
-
 require_once '../config/database.php';
 redirectIfLoggedIn();
 
@@ -201,11 +196,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
         </div>
 
-        <div class="text-center mt-3">
-            <small class="text-white">
-                Group 9: FC222027, FC222041, FC222019, FC222034
-            </small>
-        </div>
+
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

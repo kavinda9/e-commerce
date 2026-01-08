@@ -1,7 +1,4 @@
 <?php
-/**
- * Homepage - Secure E-Commerce System
- */
 require_once 'config/database.php';
 startSecureSession();
 

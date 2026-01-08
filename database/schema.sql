@@ -1,5 +1,4 @@
 -- Secure E-Commerce Database Schema
--- Group 9: FC222027, FC222041, FC222019, FC222034
 
 CREATE DATABASE IF NOT EXISTS secure_ecommerce;
 USE secure_ecommerce;

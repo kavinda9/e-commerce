@@ -1,9 +1,4 @@
 <?php
-/**
- * Database Configuration and Connection
- * Secure E-Commerce System - Group 9
- */
-
 // Database configuration
 define('DB_HOST', 'localhost');
 define('DB_NAME', 'secure_ecommerce');
@@ -335,8 +330,7 @@ function sendPasswordResetEmail($email, $name, $token) {
                 <p>For security reasons, never share this link with anyone.</p>
             </div>
             <div class='footer'>
-                <p>&copy; 2024 ShopNet E-Commerce - Group 9</p>
-                <p>FC222027, FC222041, FC222019, FC222034</p>
+                <p>&copy; 2024 ShopNet E-Commerce</p>
             </div>
         </div>
     </body>

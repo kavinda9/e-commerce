@@ -1,9 +1,4 @@
 <?php
-/**
- * Admin Orders Management - Enhanced
- * Group 9 - Secure E-Commerce System
- */
-
 require_once '../config/database.php';
 requireLogin();
 

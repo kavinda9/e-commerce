@@ -1,9 +1,4 @@
 <?php
-/**
- * User Dashboard
- * Group 9 - Secure E-Commerce System
- */
-
 require_once 'config/database.php';
 requireLogin(); // Check if user is logged in
 
@@ -225,7 +220,7 @@ if (isset($_GET['logout'])) {
     <footer class="mt-5 py-4 bg-dark text-white text-center">
         <div class="container">
             <p class="mb-0">
-                <i class="fas fa-shield-alt"></i> Secure E-Commerce System - Group 9<br>
+                <i class="fas fa-shield-alt"></i> Secure E-Commerce System<br>
                 <small class="text-muted">Protected by advanced security measures | All data encrypted</small>
             </p>
         </div>
