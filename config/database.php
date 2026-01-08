@@ -15,7 +15,7 @@ define('DB_CHARSET', 'utf8mb4');
 define('SESSION_LIFETIME', 1800); // 30 minutes
 define('MAX_LOGIN_ATTEMPTS', 5);
 define('LOCKOUT_TIME', 900); // 15 minutes in seconds
-define('PASSWORD_RESET_EXPIRY', 3600); // 1 hour
+define('PASSWORD_RESET_EXPIRY', 86400); // 24 hours
 
 // Base URL (update this if your folder name is different)
 define('BASE_URL', 'http://localhost/ecommerce/');
@@ -166,5 +166,183 @@ function redirectIfLoggedIn() {
         header('Location: ' . BASE_URL . 'dashboard.php');
         exit;
     }
+}
+
+
+// Email Configuration
+define('SMTP_HOST', 'smtp.gmail.com');
+define('SMTP_PORT', 587);
+define('SMTP_USER', 'shopnet.supp0rt@gmail.com');
+define('SMTP_PASS', 'dehnhatcnxlnuxtl'); // App password (no spaces)
+// Use the same address as SMTP user to avoid Gmail sender rejection
+define('FROM_EMAIL', SMTP_USER);
+define('FROM_NAME', 'ShopNet E-Commerce');
+
+/**
+ * Send Email Function - Using PHPMailer with Gmail SMTP
+ */
+function sendEmail($to, $toName, $subject, $body) {
+    // Try to use PHPMailer if available
+    if (file_exists(__DIR__ . '/../vendor/autoload.php')) {
+        require_once __DIR__ . '/../vendor/autoload.php';
+        
+        $mail = new PHPMailer\PHPMailer\PHPMailer(true);
+        
+        try {
+            // Server settings
+            $mail->SMTPDebug = 3; // Verbose debug output
+            $mail->Debugoutput = function($str) { error_log('SMTP: ' . $str); };
+            $mail->isSMTP();
+            $mail->Host = SMTP_HOST;
+            $mail->SMTPAuth = true;
+            $mail->Username = SMTP_USER;
+            $mail->Password = SMTP_PASS;
+            $mail->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->Port = SMTP_PORT;
+            
+            // Recipients
+            $mail->setFrom(FROM_EMAIL, FROM_NAME);
+            $mail->addAddress($to, $toName);
+            
+            // Content
+            $mail->isHTML(true);
+            $mail->Subject = $subject;
+            $mail->Body = $body;
+            $mail->AltBody = strip_tags($body);
+            
+            $mail->send();
+            error_log("Email sent successfully to: $to");
+            return true;
+        } catch (Exception $e) {
+            error_log("Email Error: {$mail->ErrorInfo}");
+            // Fall through to file logging
+        }
+    }
+    
+    // Fallback: Log to file if PHPMailer not available or fails
+    $logsDir = __DIR__ . '/../logs';
+    if (!is_dir($logsDir)) {
+        mkdir($logsDir, 0755, true);
+    }
+    
+    $timestamp = date('Y-m-d H:i:s');
+    $emailLog = $logsDir . '/emails.log';
+    
+    $logEntry = "\n" . str_repeat('=', 70) . "\n";
+    $logEntry .= "Timestamp: $timestamp\n";
+    $logEntry .= "To: $toName <$to>\n";
+    $logEntry .= "Subject: $subject\n";
+    $logEntry .= str_repeat('-', 70) . "\n";
+    $logEntry .= $body . "\n";
+    $logEntry .= str_repeat('=', 70) . "\n";
+    
+    file_put_contents($emailLog, $logEntry, FILE_APPEND);
+    error_log("Email logged to file for: $to");
+    
+    return false;
+}
+
+/**
+ * Send Password Reset Email
+ */
+function sendPasswordResetEmail($email, $name, $token) {
+    $resetLink = BASE_URL . "auth/reset_password.php?token=" . $token;
+    
+    $subject = "Password Reset Request - ShopNet E-Commerce";
+    
+    $body = "
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body { 
+                font-family: Arial, sans-serif; 
+                line-height: 1.6; 
+                color: #333; 
+                margin: 0;
+                padding: 0;
+            }
+            .container { 
+                max-width: 600px; 
+                margin: 0 auto; 
+                padding: 20px; 
+            }
+            .header { 
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                color: white; 
+                padding: 30px; 
+                text-align: center; 
+                border-radius: 10px 10px 0 0; 
+            }
+            .header h1 {
+                margin: 0;
+                font-size: 24px;
+            }
+            .content { 
+                background: #f9f9f9; 
+                padding: 30px; 
+                border-radius: 0 0 10px 10px; 
+            }
+            .button { 
+                display: inline-block; 
+                padding: 12px 30px; 
+                background: #667eea; 
+                color: white !important; 
+                text-decoration: none; 
+                border-radius: 5px; 
+                margin: 20px 0;
+                font-weight: bold;
+            }
+            .link-text {
+                word-break: break-all; 
+                color: #667eea;
+                font-size: 14px;
+            }
+            .footer { 
+                text-align: center; 
+                margin-top: 20px; 
+                color: #666; 
+                font-size: 12px; 
+            }
+            .warning {
+                background: #fff3cd;
+                border-left: 4px solid #ffc107;
+                padding: 12px;
+                margin: 15px 0;
+            }
+        </style>
+    </head>
+    <body>
+        <div class='container'>
+            <div class='header'>
+                <h1>🔐 Password Reset Request</h1>
+            </div>
+            <div class='content'>
+                <p>Hello <strong>$name</strong>,</p>
+                <p>We received a request to reset your password for your ShopNet E-Commerce account.</p>
+                <p>Click the button below to reset your password:</p>
+                <p style='text-align: center;'>
+                    <a href='$resetLink' class='button'>Reset Password</a>
+                </p>
+                <p>Or copy and paste this link into your browser:</p>
+                <p class='link-text'>$resetLink</p>
+                
+                <div class='warning'>
+                    <strong>⚠️ Important:</strong> This link will expire in <strong>1 hour</strong>.
+                </div>
+                
+                <p>If you didn't request this password reset, please ignore this email. Your password will remain unchanged.</p>
+                <p>For security reasons, never share this link with anyone.</p>
+            </div>
+            <div class='footer'>
+                <p>&copy; 2024 ShopNet E-Commerce - Group 9</p>
+                <p>FC222027, FC222041, FC222019, FC222034</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    ";
+    
+    return sendEmail($email, $name, $subject, $body);
 }
 ?>
