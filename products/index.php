@@ -1,149 +1,244 @@
 <?php
-require_once __DIR__ . '/../config/database.php';
+require_once '../config/database.php';
+startSecureSession();
 
 $db = Database::getInstance()->getConnection();
 
+// Get search and filter parameters
+$search = sanitizeInput($_GET['search'] ?? '');
+$category = sanitizeInput($_GET['category'] ?? '');
+$sort = sanitizeInput($_GET['sort'] ?? 'newest');
 
-$catsStmt = $db->query("SELECT id, name FROM categories ORDER BY name");
-$categories = $catsStmt->fetchAll(PDO::FETCH_ASSOC);
-
-
-$q = isset($_GET['q']) ? trim($_GET['q']) : '';
-$category = isset($_GET['category']) && $_GET['category'] !== '' ? (int)$_GET['category'] : null;
-$min = isset($_GET['min']) && $_GET['min'] !== '' ? (float)$_GET['min'] : null;
-$max = isset($_GET['max']) && $_GET['max'] !== '' ? (float)$_GET['max'] : null;
-$sort = isset($_GET['sort']) ? $_GET['sort'] : 'newest';
-$page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
-$perPage = 12;
-$offset = ($page - 1) * $perPage;
-
-
-$sortMap = [
-    'newest' => 'created_at DESC',
-    'price_asc' => 'price ASC',
-    'price_desc' => 'price DESC',
-    'name_asc' => 'name ASC'
-];
-$orderBy = isset($sortMap[$sort]) ? $sortMap[$sort] : $sortMap['newest'];
-
-
-$sql = "SELECT SQL_CALC_FOUND_ROWS p.* FROM products p WHERE p.is_active = 1";
+// Build query
+$query = "SELECT * FROM products WHERE is_active = 1";
 $params = [];
 
-if ($q !== '') {
-    $sql .= " AND (p.name LIKE :q OR p.description LIKE :q)";
-    $params[':q'] = '%' . $q . '%';
+if (!empty($search)) {
+    $query .= " AND (name LIKE :search OR description LIKE :search)";
+    $params[':search'] = "%$search%";
 }
-if ($category !== null) {
-    $sql .= " AND p.category_id = :category";
+
+if (!empty($category)) {
+    $query .= " AND category = :category";
     $params[':category'] = $category;
 }
-if ($min !== null) {
-    $sql .= " AND p.price >= :min";
-    $params[':min'] = $min;
+
+// Sorting
+switch ($sort) {
+    case 'price_low':
+        $query .= " ORDER BY price ASC";
+        break;
+    case 'price_high':
+        $query .= " ORDER BY price DESC";
+        break;
+    case 'name':
+        $query .= " ORDER BY name ASC";
+        break;
+    default:
+        $query .= " ORDER BY created_at DESC";
 }
-if ($max !== null) {
-    $sql .= " AND p.price <= :max";
-    $params[':max'] = $max;
-}
 
-$sql .= " ORDER BY $orderBy LIMIT :limit OFFSET :offset";
+$stmt = $db->prepare($query);
+$stmt->execute($params);
+$products = $stmt->fetchAll();
 
-$stmt = $db->prepare($sql);
-foreach ($params as $k => $v) {
-    $stmt->bindValue($k, $v);
-}
-$stmt->bindValue(':limit', (int)$perPage, PDO::PARAM_INT);
-$stmt->bindValue(':offset', (int)$offset, PDO::PARAM_INT);
-$stmt->execute();
-$products = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-
-$total = (int)$db->query("SELECT FOUND_ROWS()")->fetchColumn();
-$totalPages = (int)ceil($total / $perPage);
+// Get all categories
+$categories = $db->query("SELECT DISTINCT category FROM products WHERE is_active = 1 AND category IS NOT NULL ORDER BY category")->fetchAll(PDO::FETCH_COLUMN);
 ?>
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Products</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Products - Secure E-Commerce</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .product-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+            height: 100%;
+        }
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        .product-image {
+            height: 200px;
+            background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .price-tag {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .filter-sidebar {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+    </style>
 </head>
-<body class="p-4">
-<div class="container">
-  <h1>Products</h1>
-  <a href="<?= rtrim(BASE_URL, '/') ?>" class="btn btn-link">Home</a>
-
-  <form method="get" class="row g-2 mb-3">
-    <div class="col-md-4">
-      <input type="search" name="q" value="<?= htmlspecialchars($q) ?>" class="form-control" placeholder="Search products...">
-    </div>
-    <div class="col-md-3">
-      <select name="category" class="form-select">
-        <option value="">All categories</option>
-        <?php foreach ($categories as $c): ?>
-          <option value="<?= $c['id'] ?>" <?= ($category !== null && $category == $c['id']) ? 'selected' : '' ?>>
-            <?= htmlspecialchars($c['name']) ?>
-          </option>
-        <?php endforeach; ?>
-      </select>
-    </div>
-    <div class="col-auto">
-      <input type="number" step="0.01" name="min" class="form-control" placeholder="Min price" value="<?= ($min !== null) ? htmlspecialchars($min) : '' ?>">
-    </div>
-    <div class="col-auto">
-      <input type="number" step="0.01" name="max" class="form-control" placeholder="Max price" value="<?= ($max !== null) ? htmlspecialchars($max) : '' ?>">
-    </div>
-    <div class="col-md-2">
-      <select name="sort" class="form-select">
-        <option value="newest" <?= $sort === 'newest' ? 'selected' : '' ?>>Newest</option>
-        <option value="price_asc" <?= $sort === 'price_asc' ? 'selected' : '' ?>>Price ↑</option>
-        <option value="price_desc" <?= $sort === 'price_desc' ? 'selected' : '' ?>>Price ↓</option>
-        <option value="name_asc" <?= $sort === 'name_asc' ? 'selected' : '' ?>>Name A–Z</option>
-      </select>
-    </div>
-    <div class="col-auto">
-      <button class="btn btn-primary">Filter</button>
-    </div>
-  </form>
-
-  <div class="row">
-    <?php if (empty($products)): ?>
-      <div class="col-12"><p>No products found.</p></div>
-    <?php endif; ?>
-    <?php foreach ($products as $p): ?>
-      <div class="col-md-3 mb-4">
-        <div class="card h-100">
-          <?php if (!empty($p['image_url'])): ?>
-            <img src="<?= htmlspecialchars($p['image_url']) ?>" class="card-img-top" style="object-fit:cover;height:140px" alt="<?= htmlspecialchars($p['name']) ?>">
-          <?php endif; ?>
-          <div class="card-body d-flex flex-column">
-            <h5 class="card-title"><?= htmlspecialchars($p['name']) ?></h5>
-            <p class="card-text mb-2">$<?= number_format($p['price'], 2) ?></p>
-            <a href="detail.php?id=<?= $p['id'] ?>" class="mt-auto btn btn-outline-primary">View</a>
-          </div>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="../index.php">
+                <i class="fas fa-shopping-cart"></i> Secure E-Commerce
+            </a>
+            <div class="navbar-nav ms-auto">
+                <?php if (isLoggedIn()): ?>
+                    <a class="nav-link" href="../dashboard.php">
+                        <i class="fas fa-home"></i> Dashboard
+                    </a>
+                    <a class="nav-link" href="../cart/index.php">
+                        <i class="fas fa-shopping-bag"></i> Cart
+                    </a>
+                <?php else: ?>
+                    <a class="nav-link" href="../auth/login.php">Login</a>
+                <?php endif; ?>
+            </div>
         </div>
-      </div>
-    <?php endforeach; ?>
-  </div>
-
-
-  <?php if ($totalPages > 1): ?>
-    <nav aria-label="pagination">
-      <ul class="pagination">
-        <?php for ($i=1;$i<=$totalPages;$i++): ?>
-          <?php
-            $qs = $_GET;
-            $qs['page'] = $i;
-            $url = '?' . http_build_query($qs);
-          ?>
-          <li class="page-item <?= $i === $page ? 'active' : '' ?>">
-            <a class="page-link" href="<?= $url ?>"><?= $i ?></a>
-          </li>
-        <?php endfor; ?>
-      </ul>
     </nav>
-  <?php endif; ?>
-</div>
+
+    <div class="container mt-4">
+        <!-- Page Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-box-open"></i> All Products</h2>
+            <span class="badge bg-primary"><?php echo count($products); ?> products found</span>
+        </div>
+
+        <div class="row">
+            <!-- Filter Sidebar -->
+            <div class="col-lg-3 mb-4">
+                <div class="filter-sidebar">
+                    <h5 class="mb-3"><i class="fas fa-filter"></i> Filters</h5>
+                    
+                    <form method="GET" action="">
+                        <!-- Search -->
+                        <div class="mb-3">
+                            <label class="form-label">Search</label>
+                            <input 
+                                type="text" 
+                                class="form-control" 
+                                name="search" 
+                                placeholder="Search products..."
+                                value="<?php echo htmlspecialchars($search); ?>"
+                            >
+                        </div>
+
+                        <!-- Category -->
+                        <div class="mb-3">
+                            <label class="form-label">Category</label>
+                            <select class="form-select" name="category">
+                                <option value="">All Categories</option>
+                                <?php foreach ($categories as $cat): ?>
+                                    <option value="<?php echo htmlspecialchars($cat); ?>" 
+                                            <?php echo $category === $cat ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($cat); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+
+                        <!-- Sort -->
+                        <div class="mb-3">
+                            <label class="form-label">Sort By</label>
+                            <select class="form-select" name="sort">
+                                <option value="newest" <?php echo $sort === 'newest' ? 'selected' : ''; ?>>Newest First</option>
+                                <option value="price_low" <?php echo $sort === 'price_low' ? 'selected' : ''; ?>>Price: Low to High</option>
+                                <option value="price_high" <?php echo $sort === 'price_high' ? 'selected' : ''; ?>>Price: High to Low</option>
+                                <option value="name" <?php echo $sort === 'name' ? 'selected' : ''; ?>>Name (A-Z)</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-search"></i> Apply Filters
+                        </button>
+                        
+                        <?php if (!empty($search) || !empty($category) || $sort !== 'newest'): ?>
+                            <a href="index.php" class="btn btn-outline-secondary w-100 mt-2">
+                                <i class="fas fa-times"></i> Clear Filters
+                            </a>
+                        <?php endif; ?>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Products Grid -->
+            <div class="col-lg-9">
+                <?php if (empty($products)): ?>
+                    <div class="text-center py-5">
+                        <i class="fas fa-box-open fa-5x text-muted mb-3"></i>
+                        <h3>No products found</h3>
+                        <p class="text-muted">Try adjusting your filters</p>
+                        <a href="index.php" class="btn btn-primary">View All Products</a>
+                    </div>
+                <?php else: ?>
+                    <div class="row g-4">
+                        <?php foreach ($products as $product): ?>
+                            <div class="col-md-4">
+                                <div class="card product-card">
+                                    <div class="product-image">
+                                        <?php 
+                                            $imagePath = '../assets/images/products/' . $product['name'] . '.png';
+                                            if (file_exists($imagePath)): 
+                                        ?>
+                                            <img src="<?php echo $imagePath; ?>" 
+                                                 alt="<?php echo htmlspecialchars($product['name']); ?>"
+                                                 style="width: 100%; height: 100%; object-fit: cover;">
+                                        <?php else: ?>
+                                            <i class="fas fa-box fa-4x text-muted"></i>
+                                        <?php endif; ?>
+                                    </div>
+                                    <div class="card-body">
+                                        <span class="badge bg-secondary mb-2"><?php echo htmlspecialchars($product['category'] ?? 'General'); ?></span>
+                                        <h5 class="card-title"><?php echo htmlspecialchars($product['name']); ?></h5>
+                                        <p class="card-text text-muted small">
+                                            <?php echo htmlspecialchars(substr($product['description'], 0, 80)) . '...'; ?>
+                                        </p>
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <span class="price-tag">$<?php echo number_format($product['price'], 2); ?></span>
+                                            <span class="badge bg-success"><?php echo $product['stock_quantity']; ?> in stock</span>
+                                        </div>
+                                        
+                                        <div class="d-grid gap-2">
+                                            <a href="details.php?id=<?php echo $product['product_id']; ?>" class="btn btn-outline-primary">
+                                                <i class="fas fa-eye"></i> View Details
+                                            </a>
+                                            
+                                            <?php if (isLoggedIn()): ?>
+                                                <form action="../cart/add.php" method="POST">
+                                                    <input type="hidden" name="product_id" value="<?php echo $product['product_id']; ?>">
+                                                    <button type="submit" class="btn btn-primary w-100" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
+                                                        <i class="fas fa-cart-plus"></i> Add to Cart
+                                                    </button>
+                                                </form>
+                                            <?php else: ?>
+                                                <a href="../auth/login.php" class="btn btn-primary w-100">
+                                                    <i class="fas fa-sign-in-alt"></i> Login to Purchase
+                                                </a>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
