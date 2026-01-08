@@ -6,7 +6,7 @@ startSecureSession();
 
 // Check if user is logged in
 requireLogin();
-
+//my
 // Check if user has admin role
 if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     $_SESSION['error'] = "Access denied. Admin privileges required.";
