@@ -1,5 +1,4 @@
 -- Secure E-Commerce Database Schema
--- Group 9: FC222027, FC222041, FC222019, FC222034
 
 CREATE DATABASE IF NOT EXISTS secure_ecommerce;
 USE secure_ecommerce;
@@ -172,8 +171,3 @@ SELECT
 FROM users u
 LEFT JOIN orders o ON u.user_id = o.user_id
 GROUP BY u.user_id;
-
-ALTER TABLE user
-  ADD `reset_token_hash` VARCHAR(64) NULL DEFAULT NULL,
-  ADD `reset_token_expires_at` DATETIME NULL DEFAULT NULL,
-  ADD UNIQUE (`reset_token_hash`);

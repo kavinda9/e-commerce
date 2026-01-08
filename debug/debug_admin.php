@@ -1,15 +1,15 @@
 <?php
 /**
  * Debug Script - Check Admin Login Status
- * Place this in your root directory and access it to debug admin login issues
+ * Use via /debug/debug_admin.php
  */
 
-require_once 'config/database.php';
+require_once '../config/database.php';
 
 // Start session
 startSecureSession();
 
-echo "<h2>🔍 Admin Login Debug Information</h2>";
+echo "<h2>\ud83d\udd0d Admin Login Debug Information</h2>";
 echo "<hr>";
 
 // Check if user is logged in
@@ -27,7 +27,7 @@ if (isset($_SESSION['user_id'])) {
     echo "First Name: " . ($_SESSION['first_name'] ?? 'Not set') . "\n";
     echo "Last Name: " . ($_SESSION['last_name'] ?? 'Not set') . "\n";
     echo "Email: " . ($_SESSION['email'] ?? 'Not set') . "\n";
-    echo "Role: " . ($_SESSION['role'] ?? 'Not set') . " " . 
+    echo "Role: " . ($_SESSION['role'] ?? 'Not set') . " " .
          ($_SESSION['role'] === 'admin' ? "✅ ADMIN" : "❌ NOT ADMIN") . "\n";
     echo "Is Active: " . ($_SESSION['is_active'] ?? 'Not set') . "\n";
 } else {
@@ -82,7 +82,7 @@ if (isset($_SESSION['user_id'])) {
             echo "User ID: " . $currentUser['user_id'] . "\n";
             echo "Email: " . $currentUser['email'] . "\n";
             echo "Name: " . $currentUser['first_name'] . " " . $currentUser['last_name'] . "\n";
-            echo "Role: " . $currentUser['role'] . " " . 
+            echo "Role: " . $currentUser['role'] . " " .
                  ($currentUser['role'] === 'admin' ? "✅ ADMIN" : "❌ NOT ADMIN") . "\n";
             echo "Active: " . ($currentUser['is_active'] ? "Yes ✅" : "No ❌") . "\n";
             
@@ -108,7 +108,7 @@ if (isset($_SESSION['user_id'])) {
 echo "<h3>6. Troubleshooting Steps</h3>";
 echo "<div style='background: #f0f0f0; padding: 15px; border-left: 4px solid #667eea;'>";
 echo "<ol>";
-echo "<li><strong>If not logged in:</strong> Go to <a href='auth/login.php'>login page</a> and log in with admin credentials</li>";
+echo "<li><strong>If not logged in:</strong> Go to <a href='../auth/login.php'>login page</a> and log in with admin credentials</li>";
 echo "<li><strong>Default admin credentials:</strong><br>Email: admin@ecommerce.com<br>Password: Admin@123</li>";
 echo "<li><strong>If logged in but role is not 'admin':</strong> Your user account needs admin role in database</li>";
 echo "<li><strong>If session role doesn't match database:</strong> Logout and login again to refresh session</li>";
@@ -117,9 +117,9 @@ echo "</div>";
 
 echo "<hr>";
 echo "<div style='margin: 20px 0;'>";
-echo "<a href='auth/login.php' style='padding: 10px 20px; background: #667eea; color: white; text-decoration: none; border-radius: 5px;'>Go to Login</a> ";
-echo "<a href='auth/logout.php' style='padding: 10px 20px; background: #dc3545; color: white; text-decoration: none; border-radius: 5px;'>Logout</a> ";
-echo "<a href='dashboard.php' style='padding: 10px 20px; background: #28a745; color: white; text-decoration: none; border-radius: 5px;'>Dashboard</a>";
+echo "<a href='../auth/login.php' style='padding: 10px 20px; background: #667eea; color: white; text-decoration: none; border-radius: 5px;'>Go to Login</a> ";
+echo "<a href='../auth/logout.php' style='padding: 10px 20px; background: #dc3545; color: white; text-decoration: none; border-radius: 5px;'>Logout</a> ";
+echo "<a href='../dashboard.php' style='padding: 10px 20px; background: #28a745; color: white; text-decoration: none; border-radius: 5px;'>Dashboard</a>";
 echo "</div>";
 
 ?>
