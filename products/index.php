@@ -10,7 +10,15 @@ $category = sanitizeInput($_GET['category'] ?? '');
 $sort = sanitizeInput($_GET['sort'] ?? 'newest');
 
 // Build query
-$query = "SELECT * FROM products WHERE is_active = 1";
+$query = "
+    SELECT 
+        p.*,
+        IFNULL(AVG(r.rating), 0) AS avg_rating,
+        COUNT(r.review_id) AS review_count
+    FROM products p
+    LEFT JOIN product_reviews r ON p.product_id = r.product_id
+    WHERE p.is_active = 1
+";
 $params = [];
 
 if (!empty($search)) {
@@ -22,6 +30,8 @@ if (!empty($category)) {
     $query .= " AND category = :category";
     $params[':category'] = $category;
 }
+
+$query .= " GROUP BY p.product_id";
 
 // Sorting
 switch ($sort) {
@@ -85,6 +95,9 @@ $categories = $db->query("SELECT DISTINCT category FROM products WHERE is_active
             border-radius: 10px;
             padding: 20px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .fa-star {
+            margin-right: 1px;
         }
     </style>
 </head>
@@ -186,6 +199,18 @@ $categories = $db->query("SELECT DISTINCT category FROM products WHERE is_active
                 <?php else: ?>
                     <div class="row g-4">
                         <?php foreach ($products as $product): ?>
+                            <?php
+                                $discount = isset($product['discount_percentage'])
+                                    ? (int)$product['discount_percentage']
+                                    : 0;
+
+                                $originalPrice = (float)$product['price'];
+
+                                $finalPrice = $originalPrice;
+                                if ($discount > 0) {
+                                    $finalPrice = $originalPrice - ($originalPrice * ($discount / 100));
+                                }
+                            ?>
                             <div class="col-md-4">
                                 <div class="card product-card">
                                     <div class="product-image">
@@ -202,12 +227,43 @@ $categories = $db->query("SELECT DISTINCT category FROM products WHERE is_active
                                     </div>
                                     <div class="card-body">
                                         <span class="badge bg-secondary mb-2"><?php echo htmlspecialchars($product['category'] ?? 'General'); ?></span>
+                                        <?php if ($discount > 0): ?>
+                                            <span class="badge bg-danger mb-2">
+                                                <?php echo $discount; ?>% OFF
+                                            </span>
+                                        <?php endif; ?>
+
                                         <h5 class="card-title"><?php echo htmlspecialchars($product['name']); ?></h5>
                                         <p class="card-text text-muted small">
                                             <?php echo htmlspecialchars(substr($product['description'], 0, 80)) . '...'; ?>
                                         </p>
+                                        <div class="mb-2">
+                                            <?php
+                                                $rating = round($product['avg_rating']);
+                                                for ($i = 1; $i <= 5; $i++):
+                                            ?>
+                                                <i class="fa-star <?php echo $i <= $rating ? 'fas text-warning' : 'far text-muted'; ?>"></i>
+                                            <?php endfor; ?>
+                                            <small class="text-muted">
+                                                (<?php echo $product['review_count']; ?>)
+                                            </small>
+                                        </div>
+
                                         <div class="d-flex justify-content-between align-items-center mb-3">
-                                            <span class="price-tag">$<?php echo number_format($product['price'], 2); ?></span>
+                                            <div>
+                                                <?php if ($discount > 0): ?>
+                                                    <span class="price-tag">
+                                                        $<?php echo number_format($finalPrice, 2); ?>
+                                                    </span>
+                                                    <span class="text-muted text-decoration-line-through">
+                                                        $<?php echo number_format($originalPrice, 2); ?>
+                                                    </span><br>
+                                                <?php else: ?>
+                                                    <span class="price-tag">
+                                                        $<?php echo number_format($originalPrice, 2); ?>
+                                                    </span>
+                                                <?php endif; ?>
+                                            </div>
                                             <span class="badge bg-success"><?php echo $product['stock_quantity']; ?> in stock</span>
                                         </div>
                                         

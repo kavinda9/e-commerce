@@ -11,6 +11,20 @@ $db = Database::getInstance()->getConnection();
 $error = '';
 $success = '';
 
+// determine which discount column exists (supports legacy 'discount' or 'discount_percentage')
+function columnExists($db, $table, $column) {
+    $stmt = $db->prepare("SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = :table AND COLUMN_NAME = :column");
+    $stmt->execute([':table' => $table, ':column' => $column]);
+    return (int)$stmt->fetchColumn() > 0;
+}
+
+$discountColumn = null;
+if (columnExists($db, 'products', 'discount_percentage')) {
+    $discountColumn = 'discount_percentage';
+} elseif (columnExists($db, 'products', 'discount')) {
+    $discountColumn = 'discount';
+}
+
 // Get product ID
 $productId = (int)($_GET['id'] ?? 0);
 
@@ -24,6 +38,11 @@ $stmt = $db->prepare("SELECT * FROM products WHERE product_id = :id");
 $stmt->execute([':id' => $productId]);
 $product = $stmt->fetch();
 
+// current discount value if column exists
+$currentDiscount = 0;
+if (!empty($discountColumn) && isset($product[$discountColumn])) {
+    $currentDiscount = (int)$product[$discountColumn];
+}
 if (!$product) {
     header('Location: products.php?error=notfound');
     exit;
@@ -42,6 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $isActive = isset($_POST['is_active']) ? 1 : 0;
     $customImageName = sanitizeInput($_POST['image_name'] ?? '');
     $removeImage = isset($_POST['remove_image']);
+    $discountInput = isset($_POST['discount']) ? intval($_POST['discount']) : null;
     
     // Use new category if provided
     if (!empty($newCategory)) {
@@ -122,19 +142,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Update product if no errors
         if (empty($error)) {
             try {
-                $stmt = $db->prepare("
-                    UPDATE products 
-                    SET name = :name, 
-                        description = :description, 
-                        price = :price, 
-                        stock_quantity = :stock_quantity, 
-                        category = :category, 
-                        image_url = :image_url, 
-                        is_active = :is_active
-                    WHERE product_id = :id
-                ");
-                
-                $stmt->execute([
+                // Build update dynamically to include discount column if present
+                $setParts = [
+                    'name = :name',
+                    'description = :description',
+                    'price = :price',
+                    'stock_quantity = :stock_quantity',
+                    'category = :category',
+                    'image_url = :image_url',
+                    'is_active = :is_active'
+                ];
+
+                $params = [
                     ':name' => $name,
                     ':description' => $description,
                     ':price' => $price,
@@ -143,7 +162,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ':image_url' => $imageUrl,
                     ':is_active' => $isActive,
                     ':id' => $productId
-                ]);
+                ];
+
+                if ($discountColumn && $discountInput !== null) {
+                    $setParts[] = "$discountColumn = :discount";
+                    $params[':discount'] = $discountInput;
+                }
+
+                $sql = "UPDATE products SET " . implode(', ', $setParts) . " WHERE product_id = :id";
+                $stmt = $db->prepare($sql);
+                $stmt->execute($params);
                 
                 logAudit($_SESSION['user_id'], 'PRODUCT_UPDATED', 'product', $productId, "Updated product: $name");
                 
@@ -365,6 +393,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <div class="image-preview" id="imagePreview" style="display: none;">
                                 <span class="text-muted"><i class="fas fa-image fa-3x"></i></span>
                             </div>
+                        </div>
+
+                        <!-- Discount Percentage -->
+                        <div class="mb-3">
+                            <label for="discount" class="form-label">Discount Percentage (0-100)</label>
+                            <input type="number"
+                                   class="form-control"
+                                   id="discount"
+                                   name="discount"
+                                   min="0"
+                                   max="100"
+                                   value="<?php echo htmlspecialchars($currentDiscount ?? 0); ?>">
+                            <small class="text-muted">Enter discount as whole percent. If the database does not have a discount column, this value will be ignored.</small>
                         </div>
 
                         <!-- Active Status -->

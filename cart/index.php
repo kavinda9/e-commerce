@@ -14,18 +14,35 @@ $stmt = $db->prepare("
         p.product_id,
         p.name,
         p.description,
-        p.price,
+        p.price AS original_price,
+        p.discount_percentage,
         p.stock_quantity,
         p.is_active,
-        (p.price * sc.quantity) AS subtotal
+
+        -- final price after discount
+        CASE
+            WHEN p.discount_percentage > 0 AND p.discount_percentage < 100
+            THEN (p.price * (1 - p.discount_percentage / 100))
+            ELSE p.price
+        END AS final_price,
+
+        -- subtotal using discounted price
+        CASE
+            WHEN p.discount_percentage > 0 AND p.discount_percentage < 100
+            THEN (p.price * (1 - p.discount_percentage / 100)) * sc.quantity
+            ELSE p.price * sc.quantity
+        END AS subtotal
+
     FROM shopping_cart sc
     JOIN products p ON sc.product_id = p.product_id
     WHERE sc.user_id = :user_id AND p.is_active = 1
     ORDER BY sc.added_at DESC
 ");
 
+
 $stmt->execute([':user_id' => $userId]);
 $cartItems = $stmt->fetchAll();
+
 
 // Calculate total
 $total = 0;
@@ -165,7 +182,16 @@ foreach ($cartItems as $item) {
                             </div>
 
                             <div class="col-md-2">
-                                <strong>$<?php echo number_format($item['price'], 2); ?></strong><br>
+                                <?php if ($item['discount_percentage'] > 0): ?>
+                                    <small class="text-muted text-decoration-line-through">
+                                        $<?php echo number_format($item['original_price'], 2); ?>
+                                    </small><br>
+                                    <strong class="text-danger">
+                                        $<?php echo number_format($item['final_price'], 2); ?>
+                                    </strong>
+                                <?php else: ?>
+                                    <strong>$<?php echo number_format($item['final_price'], 2); ?></strong>
+                                <?php endif; ?><br>
                                 <small class="text-muted">per item</small>
                             </div>
 

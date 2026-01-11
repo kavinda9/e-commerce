@@ -11,6 +11,20 @@ $db = Database::getInstance()->getConnection();
 $error = '';
 $success = '';
 
+// determine which discount column exists (supports legacy 'discount' or 'discount_percentage')
+function columnExists($db, $table, $column) {
+    $stmt = $db->prepare("SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = :table AND COLUMN_NAME = :column");
+    $stmt->execute([':table' => $table, ':column' => $column]);
+    return (int)$stmt->fetchColumn() > 0;
+}
+
+$discountColumn = null;
+if (columnExists($db, 'products', 'discount_percentage')) {
+    $discountColumn = 'discount_percentage';
+} elseif (columnExists($db, 'products', 'discount')) {
+    $discountColumn = 'discount';
+}
+
 // Get all categories for dropdown
 $categories = $db->query("SELECT DISTINCT category FROM products WHERE category IS NOT NULL ORDER BY category")->fetchAll(PDO::FETCH_COLUMN);
 
@@ -23,6 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $newCategory = sanitizeInput($_POST['new_category'] ?? '');
     $isActive = isset($_POST['is_active']) ? 1 : 0;
     $customImageName = sanitizeInput($_POST['image_name'] ?? '');
+    $discountInput = isset($_POST['discount']) ? intval($_POST['discount']) : 0;
     
     // Use new category if provided, otherwise use selected
     if (!empty($newCategory)) {
@@ -87,12 +102,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Insert product if no errors
         if (empty($error)) {
             try {
-                $stmt = $db->prepare("
-                    INSERT INTO products (name, description, price, stock_quantity, category, image_url, is_active)
-                    VALUES (:name, :description, :price, :stock_quantity, :category, :image_url, :is_active)
-                ");
-                
-                $stmt->execute([
+                // Build insert dynamically to include discount column if present
+                $columns = ['name','description','price','stock_quantity','category','image_url','is_active'];
+                $placeholders = [':name',':description',':price',':stock_quantity',':category',':image_url',':is_active'];
+                $params = [
                     ':name' => $name,
                     ':description' => $description,
                     ':price' => $price,
@@ -100,7 +113,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ':category' => $category,
                     ':image_url' => $imageUrl,
                     ':is_active' => $isActive
-                ]);
+                ];
+
+                if ($discountColumn) {
+                    $columns[] = $discountColumn;
+                    $placeholders[] = ':discount';
+                    $params[':discount'] = $discountInput;
+                }
+
+                $sql = "INSERT INTO products (" . implode(',', $columns) . ") VALUES (" . implode(',', $placeholders) . ")";
+                $stmt = $db->prepare($sql);
+                $stmt->execute($params);
                 
                 $productId = $db->lastInsertId();
                 logAudit($_SESSION['user_id'], 'PRODUCT_ADDED', 'product', $productId, "Added product: $name");
@@ -284,6 +307,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <div class="image-preview" id="imagePreview">
                                 <span class="text-muted"><i class="fas fa-image fa-3x"></i></span>
                             </div>
+                        </div>
+
+                        <!-- Active Status -->
+                        <!-- Discount Percentage -->
+                        <div class="mb-3">
+                            <label for="discount" class="form-label">Discount Percentage (0-100)</label>
+                            <input type="number"
+                                   class="form-control"
+                                   id="discount"
+                                   name="discount"
+                                   min="0"
+                                   max="100"
+                                   value="<?php echo htmlspecialchars($_POST['discount'] ?? '0'); ?>">
+                            <small class="text-muted">Enter discount as whole percent. If the database does not have a discount column, this value will be ignored.</small>
                         </div>
 
                         <!-- Active Status -->

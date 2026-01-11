@@ -10,7 +10,21 @@ $stmt->execute([':user_id' => $_SESSION['user_id']]);
 $user = $stmt->fetch();
 
 // Get products
-$stmt = $db->query("SELECT * FROM products WHERE is_active = TRUE ORDER BY created_at DESC LIMIT 8");
+$stmt = $db->query("
+    SELECT 
+        p.*,
+        IFNULL(AVG(r.rating), 0) AS avg_rating,
+        COUNT(r.review_id) AS review_count
+    FROM products p
+    LEFT JOIN product_reviews r 
+        ON p.product_id = r.product_id 
+        AND r.is_approved = TRUE
+    WHERE p.is_active = TRUE
+    GROUP BY p.product_id
+    ORDER BY p.created_at DESC
+    LIMIT 8
+");
+
 $products = $stmt->fetchAll();
 
 // Handle logout
@@ -74,6 +88,7 @@ if (isset($_GET['logout'])) {
             transform: scale(1.05);
             box-shadow: 0 3px 10px rgba(102, 126, 234, 0.4);
         }
+
     </style>
 </head>
 <body>
@@ -191,8 +206,44 @@ if (isset($_GET['logout'])) {
                         <div class="card-body">
                             <h5 class="card-title"><?php echo htmlspecialchars($product['name']); ?></h5>
                             <p class="card-text text-muted small"><?php echo htmlspecialchars(substr($product['description'], 0, 60)) . '...'; ?></p>
+                            <div class="mb-2">
+                                <?php
+                                    $rating = round($product['avg_rating']);
+                                    for ($i = 1; $i <= 5; $i++):
+                                ?>
+                                    <i class="fa-star <?php echo $i <= $rating ? 'fas text-warning' : 'far text-muted'; ?>"></i>
+                                <?php endfor; ?>
+                                <small class="text-muted">
+                                    (<?php echo $product['review_count']; ?>)
+                                </small>
+                            </div>
+                            <?php
+                                    $price = (float)($product['price'] ?? 0);
+                                    // Support either `discount_percentage` or legacy `discount` column
+                                    $discount = 0;
+                                    if (isset($product['discount_percentage'])) {
+                                        $discount = (float)$product['discount_percentage'];
+                                    } elseif (isset($product['discount'])) {
+                                        $discount = (float)$product['discount'];
+                                    }
+
+                                    $finalPrice = $price;
+                                    if ($discount > 0 && $discount < 100) {
+                                        $finalPrice = $price * (1 - ($discount / 100));
+                                    }
+                            ?>
                             <div class="d-flex justify-content-between align-items-center mb-3">
-                                <span class="price-tag">$<?php echo number_format($product['price'], 2); ?></span>
+                                <div>
+                                    <?php if ($discount > 0 && $discount < 100): ?>
+                                        <span class="price-tag">$<?php echo number_format($finalPrice, 2); ?></span>
+                                        <small class="text-muted text-decoration-line-through">$<?php echo number_format($price, 2); ?></small>
+                                        <span class="badge bg-danger ms-2"><?php echo intval($discount); ?>% off</span>
+                                        
+
+                                    <?php else: ?>
+                                        <span class="price-tag">$<?php echo number_format($price, 2); ?></span>
+                                    <?php endif; ?>
+                                </div>
                                 <span class="badge bg-success"><?php echo $product['stock_quantity']; ?> in stock</span>
                             </div>
                             <form action="cart/add.php" method="POST">
