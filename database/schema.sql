@@ -54,6 +54,7 @@ CREATE TABLE products (
     name VARCHAR(255) NOT NULL,
     description TEXT,
     price DECIMAL(10, 2) NOT NULL,
+    discount_percentage DECIMAL(5, 2) DEFAULT 0,
     stock_quantity INT DEFAULT 0,
     category VARCHAR(100),
     image_url VARCHAR(500),
@@ -63,6 +64,7 @@ CREATE TABLE products (
     INDEX idx_category (category),
     INDEX idx_active (is_active),
     CONSTRAINT chk_price CHECK (price >= 0),
+    CONSTRAINT chk_discount CHECK (discount_percentage >= 0 AND discount_percentage < 100),
     CONSTRAINT chk_stock CHECK (stock_quantity >= 0)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
