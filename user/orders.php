@@ -12,13 +12,13 @@ $stmt = $db->prepare("
         o.total_amount,
         o.status,
         o.payment_method,
-        o.created_at as order_date,
+        o.order_date,
         COUNT(oi.order_item_id) as item_count
     FROM orders o
     LEFT JOIN order_items oi ON o.order_id = oi.order_id
     WHERE o.user_id = :user_id
     GROUP BY o.order_id
-    ORDER BY o.created_at DESC
+    ORDER BY o.order_date DESC
 ");
 
 $stmt->execute([':user_id' => $userId]);
