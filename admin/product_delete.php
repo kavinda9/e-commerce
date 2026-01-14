@@ -45,9 +45,13 @@ try {
     
     // Delete product image if exists
     if (!empty($product['image_url'])) {
+        $uploadDir = realpath('../assets/images/products/');
         $imagePath = '../' . $product['image_url'];
-        if (file_exists($imagePath)) {
-            unlink($imagePath);
+        $realImagePath = realpath($imagePath);
+        
+        // Validate path is within allowed directory
+        if ($realImagePath && strpos($realImagePath, $uploadDir) === 0 && file_exists($realImagePath)) {
+            unlink($realImagePath);
         }
     }
     

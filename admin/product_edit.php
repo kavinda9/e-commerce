@@ -81,9 +81,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         // Remove existing image if requested
         if ($removeImage && !empty($imageUrl)) {
+            $uploadDir = realpath('../assets/images/products/');
             $imagePath = '../' . $imageUrl;
-            if (file_exists($imagePath)) {
-                unlink($imagePath);
+            $realImagePath = realpath($imagePath);
+            
+            // Validate path is within allowed directory
+            if ($realImagePath && strpos($realImagePath, $uploadDir) === 0 && file_exists($realImagePath)) {
+                unlink($realImagePath);
             }
             $imageUrl = '';
         }
@@ -91,17 +95,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Handle new image upload
         if (isset($_FILES['product_image']) && $_FILES['product_image']['error'] === UPLOAD_ERR_OK) {
             $uploadDir = '../assets/images/products/';
+            $uploadDirReal = realpath($uploadDir);
             
             // Create directory if it doesn't exist
             if (!is_dir($uploadDir)) {
                 mkdir($uploadDir, 0755, true);
+                $uploadDirReal = realpath($uploadDir);
             }
             
             // Delete old image if exists
             if (!empty($product['image_url'])) {
                 $oldImagePath = '../' . $product['image_url'];
-                if (file_exists($oldImagePath)) {
-                    unlink($oldImagePath);
+                $realOldImagePath = realpath($oldImagePath);
+                
+                // Validate path is within allowed directory
+                if ($realOldImagePath && strpos($realOldImagePath, $uploadDirReal) === 0 && file_exists($realOldImagePath)) {
+                    unlink($realOldImagePath);
                 }
             }
             

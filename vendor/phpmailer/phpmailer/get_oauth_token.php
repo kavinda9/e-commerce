@@ -160,7 +160,13 @@ if (!isset($_GET['code'])) {
     //If we don't have an authorization code then get one
     $authUrl = $provider->getAuthorizationUrl($options);
     $_SESSION['oauth2state'] = $provider->getState();
-    header('Location: ' . $authUrl);
+    
+    // Validate URL to prevent open redirect
+    if (filter_var($authUrl, FILTER_VALIDATE_URL) && strpos($authUrl, 'http') === 0) {
+        header('Location: ' . $authUrl);
+    } else {
+        exit('Invalid authorization URL');
+    }
     exit;
     //Check given state against previously stored one to mitigate CSRF attack
 } elseif (empty($_GET['state']) || ($_GET['state'] !== $_SESSION['oauth2state'])) {
