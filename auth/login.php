@@ -224,15 +224,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <i class="fas fa-user-plus"></i> Create Account
                 </a>
             </div>
-
-            <!-- Admin Credentials Hint (Remove in production) -->
-            <div class="admin-hint">
-                <small>
-                    <strong><i class="fas fa-info-circle"></i> Default Admin Credentials:</strong><br>
-                    Email: <code>admin@ecommerce.com</code><br>
-                    Password: <code>Admin@123</code>
-                </small>
-            </div>
         </div>
 
         <div class="text-center text-white mt-3">
