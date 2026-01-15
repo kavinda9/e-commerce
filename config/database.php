@@ -241,7 +241,15 @@ function sendEmail($to, $toName, $subject, $body) {
  * Send Password Reset Email
  */
 function sendPasswordResetEmail($email, $name, $token) {
-    $resetLink = BASE_URL . "auth/reset_password.php?token=" . $token;
+    // Sanitize input to prevent email content injection
+    $email = filter_var($email, FILTER_VALIDATE_EMAIL) ? $email : '';
+    $name = htmlspecialchars($name, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    
+    if (empty($email)) {
+        return false;
+    }
+    
+    $resetLink = BASE_URL . "auth/reset_password.php?token=" . urlencode($token);
     
     $subject = "Password Reset Request - ShopNet E-Commerce";
     
@@ -313,14 +321,14 @@ function sendPasswordResetEmail($email, $name, $token) {
                 <h1>🔐 Password Reset Request</h1>
             </div>
             <div class='content'>
-                <p>Hello <strong>$name</strong>,</p>
+                <p>Hello <strong>" . $name . "</strong>,</p>
                 <p>We received a request to reset your password for your ShopNet E-Commerce account.</p>
                 <p>Click the button below to reset your password:</p>
                 <p style='text-align: center;'>
-                    <a href='$resetLink' class='button'>Reset Password</a>
+                    <a href='" . htmlspecialchars($resetLink, ENT_QUOTES | ENT_HTML5, 'UTF-8') . "' class='button'>Reset Password</a>
                 </p>
                 <p>Or copy and paste this link into your browser:</p>
-                <p class='link-text'>$resetLink</p>
+                <p class='link-text'>" . htmlspecialchars($resetLink, ENT_QUOTES | ENT_HTML5, 'UTF-8') . "</p>
                 
                 <div class='warning'>
                     <strong>⚠️ Important:</strong> This link will expire in <strong>1 hour</strong>.

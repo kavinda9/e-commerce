@@ -319,7 +319,9 @@ if ($discount > 0 && $discount < 100) {
                         $tableExists = $checkTable->rowCount() > 0;
                     } catch (Exception $e) {
                         $tableExists = false;
-                        $tableError = $e->getMessage();
+                        // Log error but don't expose it to users
+                        error_log("Reviews table check error: " . $e->getMessage());
+                        $tableError = true;
                     }
 
                     $reviews = [];
@@ -340,7 +342,9 @@ if ($discount > 0 && $discount < 100) {
                             $reviews = $stmt->fetchAll();
                         } catch (PDOException $e) {
                             $tableExists = false;
-                            $tableError = "Column missing or table corrupted: " . $e->getMessage();
+                            // Log error but don't expose it to users
+                            error_log("Reviews query error: " . $e->getMessage());
+                            $tableError = true;
                         }
 
                         // Get current user's review if exists
@@ -373,9 +377,6 @@ if ($discount > 0 && $discount < 100) {
                                     <strong>Reviews system not initialized.</strong> 
                                     The database migration has not been run yet. Please run the SQL migration first.
                                     <br><small>See RATINGS_SETUP_GUIDE.md for instructions.</small>
-                                    <?php if ($tableError): ?>
-                                        <br><code><?php echo htmlspecialchars($tableError); ?></code>
-                                    <?php endif; ?>
                                 </div>
                             <?php elseif (isLoggedIn()): ?>
                                 <h5 class="card-title">

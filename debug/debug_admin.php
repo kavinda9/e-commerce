@@ -65,7 +65,9 @@ try {
     echo "</pre>";
     
 } catch (Exception $e) {
-    echo "<pre>❌ Database error: " . $e->getMessage() . "</pre>";
+    // Don't expose raw database error messages to users
+    error_log("Debug database error: " . $e->getMessage());
+    echo "<pre>❌ Database error: Unable to connect or retrieve data</pre>";
 }
 
 // Check if current user matches admin
@@ -100,7 +102,9 @@ if (isset($_SESSION['user_id'])) {
         }
         echo "</pre>";
     } catch (Exception $e) {
-        echo "<pre>❌ Error: " . $e->getMessage() . "</pre>";
+        // Don't expose raw error messages to users
+        error_log("Debug user details error: " . $e->getMessage());
+        echo "<pre>❌ Error: Unable to retrieve user details</pre>";
     }
 }
 
@@ -108,8 +112,7 @@ if (isset($_SESSION['user_id'])) {
 echo "<h3>6. Troubleshooting Steps</h3>";
 echo "<div style='background: #f0f0f0; padding: 15px; border-left: 4px solid #667eea;'>";
 echo "<ol>";
-echo "<li><strong>If not logged in:</strong> Go to <a href='../auth/login.php'>login page</a> and log in with admin credentials</li>";
-echo "<li><strong>Default admin credentials:</strong><br>Email: admin@ecommerce.com<br>Password: Admin@123</li>";
+echo "<li><strong>If not logged in:</strong> Go to <a href='../auth/login.php'>login page</a> and log in</li>";
 echo "<li><strong>If logged in but role is not 'admin':</strong> Your user account needs admin role in database</li>";
 echo "<li><strong>If session role doesn't match database:</strong> Logout and login again to refresh session</li>";
 echo "</ol>";
