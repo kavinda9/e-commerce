@@ -22,8 +22,10 @@ $query = "
 $params = [];
 
 if (!empty($search)) {
-    $query .= " AND (name LIKE :search OR description LIKE :search)";
-    $params[':search'] = "%$search%";
+    $searchTerm = "%$search%";
+    $query .= " AND (name LIKE :search1 OR description LIKE :search2)";
+    $params[':search1'] = $searchTerm;
+    $params[':search2'] = $searchTerm;
 }
 
 if (!empty($category)) {
