@@ -1,9 +1,10 @@
 <?php
-// Database configuration
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'secure_ecommerce');
-define('DB_USER', 'root');
-define('DB_PASS', '');
+// Database configuration (updated for live server)
+define('DB_HOST', 'sql108.ezyro.com');
+define('DB_NAME', 'ezyro_40907915_secure_ecommerce');
+define('DB_USER', 'ezyro_40907915');
+// MySQL password is your vPanel password; update below if different
+define('DB_PASS', 'e833dad');
 define('DB_CHARSET', 'utf8mb4');
 
 // Security settings
@@ -12,8 +13,9 @@ define('MAX_LOGIN_ATTEMPTS', 5);
 define('LOCKOUT_TIME', 900); // 15 minutes in seconds
 define('PASSWORD_RESET_EXPIRY', 86400); // 24 hours
 
-// Base URL (update this if your folder name is different)
-define('BASE_URL', 'http://localhost/ecommerce/');
+// Base URL (update this for your deployed domain)
+// Example: define('BASE_URL', 'https://yourdomain.com/');
+define('BASE_URL', 'https://shopnet.unaux.com/');
 
 class Database {
     private $conn;

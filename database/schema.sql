@@ -68,6 +68,25 @@ CREATE TABLE products (
     CONSTRAINT chk_stock CHECK (stock_quantity >= 0)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Product Reviews Table
+CREATE TABLE product_reviews (
+    review_id INT AUTO_INCREMENT PRIMARY KEY,
+    product_id INT NOT NULL,
+    user_id INT NOT NULL,
+    rating TINYINT NOT NULL,
+    review_text TEXT,
+    is_approved BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    CONSTRAINT chk_rating CHECK (rating BETWEEN 1 AND 5),
+    INDEX idx_product (product_id),
+    INDEX idx_user (user_id),
+    INDEX idx_approved (is_approved),
+    UNIQUE KEY uniq_user_product (user_id, product_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- Shopping Cart Table
 CREATE TABLE shopping_cart (
     cart_id INT AUTO_INCREMENT PRIMARY KEY,
