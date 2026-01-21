@@ -15,6 +15,14 @@ define('PASSWORD_RESET_EXPIRY', 86400); // 24 hours
 // Base URL
 define('BASE_URL', 'https://your-domain.com/');
 
+// Email Configuration (SMTP)
+define('SMTP_HOST', 'smtp.example.com');
+define('SMTP_PORT', 587);
+define('SMTP_USER', 'your-email@example.com');
+define('SMTP_PASS', 'your-smtp-password');
+define('FROM_EMAIL', 'noreply@example.com');
+define('FROM_NAME', 'Your Store Name');
+
 class Database {
     private $conn;
     private static $instance = null;
