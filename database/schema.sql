@@ -159,9 +159,11 @@ CREATE TABLE audit_logs (
     INDEX idx_created (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Insert sample admin user
+-- Insert sample admin user (Change these credentials after setup!)
+-- Default credentials: admin@example.com / password: changeme123
+-- Password hash below is for 'changeme123' - MUST be changed in production
 INSERT INTO users (email, password_hash, first_name, last_name, role) VALUES
-('admin@ecommerce.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'System', 'Admin', 'admin');
+('admin@example.com', '$2y$10$8Km0rMH.nZJOy6wRh5dqb.IH8HsBKGqLCQU0ZpKrwH9dpqJuGf7IC', 'System', 'Admin', 'admin');
 
 -- Insert sample products
 INSERT INTO products (name, description, price, stock_quantity, category) VALUES
