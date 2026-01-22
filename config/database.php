@@ -3,14 +3,13 @@
 define('DB_HOST', 'localhost');
 define('DB_NAME', 'secure_ecommerce');
 define('DB_USER', 'root');
-define('DB_PASS', ''); // XAMPP default MySQL password is empty
-define('DB_CHARSET', 'utf8mb4');
+define('DB_PASS', '');
+define('DB_CHARSET', '');
 
-// Security settings
-define('SESSION_LIFETIME', 1800); // 30 minutes
+define('SESSION_LIFETIME', 1800); 
 define('MAX_LOGIN_ATTEMPTS', 5);
-define('LOCKOUT_TIME', 900); // 15 minutes in seconds
-define('PASSWORD_RESET_EXPIRY', 86400); // 24 hours
+define('LOCKOUT_TIME', 900); 
+define('PASSWORD_RESET_EXPIRY', 86400); 
 
 // Base URL for local development
 define('BASE_URL', 'http://localhost/ecommerce/');
